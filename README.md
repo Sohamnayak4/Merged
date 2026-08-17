@@ -1,5 +1,7 @@
 # MERGED.
 
+**[itsmerged.vercel.app](https://itsmerged.vercel.app)**
+
 An open-source showcase and leaderboard. It ranks people by the patches other
 maintainers merged — not by stars on their own projects.
 
@@ -69,12 +71,18 @@ git init && git add -A && git commit -m "MERGED."
 gh repo create merged --public --source=. --push
 ```
 
-<https://vercel.com/new> → import the repo. Before clicking Deploy, add all
-four environment variables from `.env.local` under **Environment Variables**
+<https://vercel.com/new> → import the repo. Before clicking Deploy, add the
+environment variables from your `.env` under **Environment Variables**
 (Production, Preview, and Development).
 
 > They must exist **before the first build** — pages prerender at build time
 > and read the database then.
+
+**Set `NEXT_PUBLIC_SITE_URL` to the address you'll actually share**, including
+on a plain `*.vercel.app`. Auto-detection reads `VERCEL_PROJECT_PRODUCTION_URL`,
+which is Vercel's generated project URL — if you renamed the project or added
+an alias, that value is a *different hostname*, and every canonical link and
+share card will advertise it instead of yours.
 
 ### 6. Import on production
 
