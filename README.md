@@ -116,6 +116,17 @@ update profiles set status = 'hidden' where login = 'the-handle';
 update removal_requests set handled = true where login = 'the-handle';
 ```
 
+Then flush the cache, or the removed profile keeps being served from
+prerendered HTML until Next's own timer expires:
+
+```bash
+curl -X POST https://itsmerged.vercel.app/api/admin/revalidate -H "Authorization: Bearer $CRON_SECRET"
+```
+
+**Any change made directly in SQL needs that call.** Writes that go through
+the app revalidate themselves; the database has no way to tell Next it
+changed.
+
 Hidden rows stay in the table on purpose, so the next passer-by can't silently
 re-add someone who asked to be left alone. Check this weekly — you're ranking
 real named people who never opted in, and one unanswered request is a worse
