@@ -27,6 +27,14 @@ export default function Footer() {
           >
             Take me off
           </Link>
+          <a
+            href="https://x.com/soham_nayak04"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mono text-[11px] text-dim transition-colors hover:text-fg"
+          >
+            @soham_nayak04
+          </a>
         </div>
       </div>
     </footer>
