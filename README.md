@@ -7,6 +7,10 @@ maintainers merged — not by stars on their own projects.
 
 Next.js (App Router) · Supabase Postgres · no accounts, no sessions.
 
+Vercel Analytics is enabled for aggregate page views — no cookies, no
+cross-site identifiers. It still has to be switched on once in the dashboard
+(**Vercel → project → Analytics → Enable**); the code alone collects nothing.
+
 ---
 
 ## Deploy runbook

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Familjen_Grotesk, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { siteUrl } from "@/lib/site";
@@ -66,6 +67,10 @@ export default function RootLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        {/* Vercel Analytics: aggregate page views, no cookies and no
+            cross-site identifiers. Still a measurement script, so the footer
+            says so rather than claiming the site tracks nothing. */}
+        <Analytics />
       </body>
     </html>
   );
