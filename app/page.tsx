@@ -1,69 +1,149 @@
-import Image from "next/image";
+import Link from "next/link";
+import Board from "@/components/Board";
+import HeroInput from "@/components/HeroInput";
+import PatchPanel, { type Line } from "@/components/PatchPanel";
+import Ticker from "@/components/Ticker";
+import Wall from "@/components/Wall";
+import { boardTotals, listBoard, wallItems } from "@/lib/db";
+import { compact } from "@/lib/format";
 
-export default function Home() {
+// The board changes when someone joins or the nightly refresh runs, so serve
+// it from cache and rebuild every few minutes. Adding yourself revalidates
+// this path immediately, so you never land on a page that omits you.
+export const revalidate = 300;
+
+export default async function Home() {
+  const [rows, feed, totals] = await Promise.all([
+    listBoard(),
+    wallItems(60, 12),
+    boardTotals(),
+  ]);
+
+  // The hero patch is generated from the live board, so the names typing
+  // themselves onto the page are the people actually leading it.
+  const top = rows.slice(0, 3);
+  const pad = Math.max(...top.map((r) => r.login.length), 3) + 2;
+  const lines: Line[] = [
+    { kind: "meta", text: "diff --git a/CONTRIBUTORS b/CONTRIBUTORS" },
+    { kind: "meta", text: "--- a/CONTRIBUTORS" },
+    { kind: "meta", text: "+++ b/CONTRIBUTORS" },
+    { kind: "hunk", text: "@@ ranked by patches merged upstream @@" },
+    { kind: "ctx", text: "  # work that landed in someone else's repo" },
+    ...top.map(
+      (r): Line => ({
+        kind: "add",
+        text: `+ ${r.login.padEnd(pad)}${String(r.upstreamTotal).padStart(
+          5,
+        )} upstream   ${r.tier.name}`,
+      }),
+    ),
+    { kind: "add", text: `+ ${"you".padEnd(pad)}    ? upstream   —` },
+  ];
+
+  const stats = [
+    { n: compact(totals.upstream), l: "patches merged upstream" },
+    { n: String(totals.repos), l: "repositories touched" },
+    { n: String(totals.contributors), l: "contributors on the board" },
+    { n: compact(totals.stars), l: "stars on work they maintain" },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      {/* ── hero ───────────────────────────────────────────────── */}
+      <section className="gutter-field border-b border-line">
+        <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          <div className="rise">
+            <p className="label mb-6 flex items-center gap-2">
+              <span className="inline-block h-px w-6 bg-merge" />
+              The open-source showcase
+            </p>
+
+            <h1 className="display text-[46px] sm:text-[62px] lg:text-[68px]">
+              Your best work is in
+              <br />
+              <span className="text-merge">someone else&rsquo;s</span> repo.
+            </h1>
+
+            <p className="mt-6 max-w-[46ch] text-[15.5px] leading-relaxed text-mid">
+              Stars measure what you own. This board measures what other
+              maintainers let you change — every patch counted here was reviewed
+              and merged by someone who didn&rsquo;t have to say yes.
+            </p>
+
+            <div className="mt-8 max-w-[520px]">
+              <HeroInput />
+            </div>
+          </div>
+
+          <div className="rise lg:mt-0" style={{ animationDelay: "180ms" }}>
+            <PatchPanel lines={lines} />
+          </div>
+        </div>
+      </section>
+
+      <Ticker items={feed} />
+
+      {/* ── aggregates ─────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-5 py-12 sm:px-8">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.l} className="bg-ink-950 px-4 py-5">
+              <dt className="mono tnum text-[30px] text-fg sm:text-[34px]">
+                {s.n}
+              </dt>
+              <dd className="mono mt-1.5 text-[11px] leading-snug text-dim">
+                {s.l}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <Board rows={rows} />
+
+      {/* ── the wall ───────────────────────────────────────────── */}
+      {feed.length > 0 && (
+        <section className="mx-auto mt-24 max-w-[1180px] px-5 sm:px-8">
+          <div className="flex flex-col gap-4 border-b border-line pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="display text-[30px] sm:text-[38px]">The wall</h2>
+              <p className="mono mt-1.5 text-[11px] text-dim">
+                Individual patches, newest first — the actual work behind the
+                numbers
+              </p>
+            </div>
+            <Link
+              href="/wall"
+              className="mono shrink-0 rounded-[3px] border border-line px-3 py-1.5 text-[11.5px] text-mid transition-colors hover:border-line-2 hover:text-fg"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+              See all →
+            </Link>
+          </div>
+
+          <div className="pt-6">
+            <Wall items={feed.slice(0, 12)} />
+          </div>
+        </section>
+      )}
+
+      {/* ── close ──────────────────────────────────────────────── */}
+      <section className="mx-auto mt-24 max-w-[1180px] px-5 sm:px-8">
+        <div className="rounded-[4px] border border-line bg-ink-900 px-6 py-12 text-center sm:px-12 sm:py-16">
+          <h2 className="display text-[32px] sm:text-[42px]">
+            Add your line to the file.
+          </h2>
+          <p className="mx-auto mt-4 max-w-[48ch] text-[15px] leading-relaxed text-mid">
+            Paste your GitHub profile and the board reads the rest — merged
+            patches, the repos that accepted them, and what you ship in.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/add"
+            className="mono mt-8 inline-block rounded-[3px] bg-merge px-5 py-2.5 text-[12.5px] font-medium text-ink-950 transition-opacity hover:opacity-90"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            + Add yours
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+    </>
   );
 }

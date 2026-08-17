@@ -1,26 +1,237 @@
 @import "tailwindcss";
 
+/*
+  MERGED. — design tokens
+
+  Colour discipline, and it is the whole system:
+  violet is the brand and the only decorative accent. Green and red are
+  reserved exclusively for their real diff meanings — added, removed, up, down.
+  Nothing is green just to look alive. That restraint is what keeps a dark
+  developer UI from turning into a Christmas tree.
+*/
+@theme {
+  --color-ink-950: #07070a;
+  --color-ink-900: #0a0a0f;
+  --color-ink-850: #0e0e14;
+  --color-ink-800: #12121a;
+  --color-ink-700: #191922;
+  --color-line: #20202c;
+  --color-line-2: #2c2c3b;
+  --color-dim: #61617a;
+  --color-mid: #9292aa;
+  --color-fg: #e9e9f2;
+
+  --color-merge: #a371f7;
+  --color-merge-deep: #6e40c9;
+  --color-merge-dim: #3d2a63;
+  --color-add: #3fb950;
+  --color-del: #f85149;
+
+  --font-display: var(--font-familjen), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink-950);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* The page sits on a faint vertical rule at the far left of the content
+   column — the diff gutter, present even when no diff is on screen. */
+.gutter-field {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-merge) 22%, transparent),
+    transparent 60%
+  );
+}
+
+::selection {
+  background: var(--color-merge-dim);
+  color: #fff;
+}
+
+/* ---- type ---- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.94;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero" 1;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- focus, accessible everywhere ---- */
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-merge);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- the signature: a real unified-diff line ---- */
+.patch {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.patch-add {
+  background: color-mix(in oklab, var(--color-add) 8%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-add);
+}
+
+.patch-del {
+  background: color-mix(in oklab, var(--color-del) 8%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-del);
+}
+
+.patch-hunk {
+  color: var(--color-merge);
+  background: color-mix(in oklab, var(--color-merge) 7%, transparent);
+}
+
+/* ---- caret for the typing patch ---- */
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  margin-left: 1px;
+  background: var(--color-merge);
+  vertical-align: text-bottom;
+  animation: blink 1.05s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* ---- ticker ---- */
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: slide 64s linear infinite;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-hold:hover .marquee {
+  animation-play-state: paused;
+}
+
+/* ---- entrance, orchestrated once on load ---- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.sweep {
+  transform-origin: left;
+  animation: sweep 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---- heatmap cell ---- */
+.cell {
+  border-radius: 1px;
+}
+.cell-0 {
+  background: #16161f;
+}
+.cell-1 {
+  background: #38265c;
+}
+.cell-2 {
+  background: #563a8f;
+}
+.cell-3 {
+  background: #7d55c7;
+}
+.cell-4 {
+  background: #a371f7;
+}
+
+/* ---- scrollbar ---- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-2);
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee {
+    animation: none;
+  }
+  .caret::after {
+    animation: none;
+  }
 }
