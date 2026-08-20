@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Board from "@/components/Board";
+import FeatureRow from "@/components/FeatureRow";
 import HeroInput from "@/components/HeroInput";
 import PatchPanel, { type Line } from "@/components/PatchPanel";
+import StatGrid, { boardStats } from "@/components/StatGrid";
 import Ticker from "@/components/Ticker";
 import Wall from "@/components/Wall";
 import { boardTotals, listBoard, wallItems } from "@/lib/db";
-import { compact } from "@/lib/format";
 
 // The board changes when someone joins or the nightly refresh runs, so serve
 // it from cache and rebuild every few minutes. Adding yourself revalidates
@@ -38,13 +39,6 @@ export default async function Home() {
       }),
     ),
     { kind: "add", text: `+ ${"you".padEnd(pad)}    ? upstream   —` },
-  ];
-
-  const stats = [
-    { n: compact(totals.upstream), l: "patches merged upstream" },
-    { n: String(totals.repos), l: "repositories touched" },
-    { n: String(totals.contributors), l: "contributors on the board" },
-    { n: compact(totals.stars), l: "stars on work they maintain" },
   ];
 
   return (
@@ -85,21 +79,10 @@ export default async function Home() {
 
       {/* ── aggregates ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-5 py-12 sm:px-8">
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line sm:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.l} className="bg-ink-950 px-4 py-5">
-              <dt className="mono tnum text-[30px] text-fg sm:text-[34px]">
-                {s.n}
-              </dt>
-              <dd className="mono mt-1.5 text-[11px] leading-snug text-dim">
-                {s.l}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <StatGrid stats={boardStats(totals)} />
       </section>
 
-      <Board rows={rows} />
+      <Board rows={rows} feature={<FeatureRow />} />
 
       {/* ── the wall ───────────────────────────────────────────── */}
       {feed.length > 0 && (

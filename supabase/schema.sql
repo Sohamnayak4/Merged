@@ -85,6 +85,29 @@ create table if not exists submissions (
 
 create index if not exists submissions_ip_idx on submissions (ip_hash, created_at desc);
 
+-- ── sponsor inquiries ────────────────────────────────────────────────
+-- Who asked about the four placements. There is no sponsors table on purpose:
+-- the live sponsor is a hand-edited file in the repo, so "one sponsor at a
+-- time" is enforced by there being exactly one slot to type into.
+create table if not exists sponsor_inquiries (
+  id          bigserial primary key,
+  name        text not null,
+  email       text not null,
+  company_url text,
+  message     text,
+  ip_hash     text,
+  handled     boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists sponsor_inquiries_created_idx
+  on sponsor_inquiries (created_at desc);
+-- The rate limit counts a sender's own recent rows rather than borrowing the
+-- submissions ledger, which pairs an address with a GitHub handle and means
+-- something else entirely.
+create index if not exists sponsor_inquiries_ip_idx
+  on sponsor_inquiries (ip_hash, created_at desc);
+
 -- ── the wall ─────────────────────────────────────────────────────────
 -- Strict date order lets whoever shipped most recently own the whole screen,
 -- and one person merging a hundred patches buries everyone else. So deal the
@@ -145,3 +168,4 @@ alter table profiles         enable row level security;
 alter table patches          enable row level security;
 alter table removal_requests enable row level security;
 alter table submissions      enable row level security;
+alter table sponsor_inquiries enable row level security;

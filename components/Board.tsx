@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { avatarFor, compact } from "@/lib/format";
 import { loadMine } from "@/lib/mine";
 import type { BoardRow } from "@/lib/db";
@@ -17,12 +17,25 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "current", label: "Current" },
 ];
 
+/** After the 5th and the 15th contributor, and nowhere else. */
+const FEATURE_AFTER = [5, 15];
+
 /**
  * Rows arrive already ranked by Postgres. Sorting and filtering here are view
  * state only — rank is always the person's standing on the whole board, so
  * filtering to Rust never renumbers anyone.
+ *
+ * `feature` is a node rather than data: it is rendered on the server and
+ * handed down through the tree, so the sponsor row is in the HTML the first
+ * paint uses and no part of it is decided in the browser.
  */
-export default function Board({ rows }: { rows: BoardRow[] }) {
+export default function Board({
+  rows,
+  feature,
+}: {
+  rows: BoardRow[];
+  feature?: ReactNode;
+}) {
   const [mine, setMine] = useState<string[]>([]);
   const [sort, setSort] = useState<SortKey>("impact");
   const [lang, setLang] = useState<string | null>(null);
@@ -130,9 +143,9 @@ export default function Board({ rows }: { rows: BoardRow[] }) {
       </div>
 
       <ol>
-        {visible.map(({ row, rank }, i) => {
+        {visible.flatMap(({ row, rank }, i) => {
           const isMine = mine.includes(row.login.toLowerCase());
-          return (
+          const person = (
             <li
               key={row.login}
               className="rise"
@@ -204,6 +217,18 @@ export default function Board({ rows }: { rows: BoardRow[] }) {
               </Link>
             </li>
           );
+
+          // The slot only exists once there are enough people above it for the
+          // claim on it — "in front of every contributor on this board" — to
+          // be true. On a short or heavily filtered board it simply isn't there.
+          return feature && FEATURE_AFTER.includes(i + 1)
+            ? [
+                person,
+                <li key={`feature-${i}`} className="rise">
+                  {feature}
+                </li>,
+              ]
+            : [person];
         })}
       </ol>
 

@@ -97,3 +97,17 @@ export type Tier = {
   /** Tailwind-ready text colour token. */
   tone: string;
 };
+
+/**
+ * The single site-wide sponsor, edited by hand in sponsor.config.ts. There is
+ * no table and no admin screen for this on purpose: one sponsor at a time is a
+ * commitment I keep by making a second one impossible to add by accident.
+ */
+export type Sponsor = {
+  name: string;
+  tagline: string;
+  /** Must be same-origin or Supabase storage — see lib/sponsor.ts. */
+  logoUrl: string;
+  url: string;
+  blurb: string;
+};

@@ -288,6 +288,42 @@ export async function requestRemoval(
   if (error) throw new Error(error.message);
 }
 
+export type SponsorInquiry = {
+  name: string;
+  email: string;
+  companyUrl: string | null;
+  message: string | null;
+};
+
+/**
+ * Sponsor inquiries are stored first and mailed second — a notification that
+ * fails to send must not lose the message, because there is no second copy of
+ * it anywhere and the person who wrote it was told I'd reply.
+ */
+export async function recordSponsorInquiry(
+  inquiry: SponsorInquiry,
+  ipHash: string | null,
+) {
+  const { error } = await db().from("sponsor_inquiries").insert({
+    name: inquiry.name,
+    email: inquiry.email,
+    company_url: inquiry.companyUrl,
+    message: inquiry.message,
+    ip_hash: ipHash,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function sponsorInquiriesSince(ipHash: string, minutes: number) {
+  const since = new Date(Date.now() - minutes * 60_000).toISOString();
+  const { count } = await db()
+    .from("sponsor_inquiries")
+    .select("id", { count: "exact", head: true })
+    .eq("ip_hash", ipHash)
+    .gte("created_at", since);
+  return count ?? 0;
+}
+
 /** Oldest data first — the refresh job works through the staleest rows. */
 export async function stalestLogins(limit: number): Promise<string[]> {
   const { data, error } = await db()

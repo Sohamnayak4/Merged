@@ -35,7 +35,7 @@ before the site is hard-down. With it, 5,000/hour.
    Vercel region.
 2. Wait for it to finish provisioning.
 3. **SQL Editor → New query** → paste all of [`supabase/schema.sql`](supabase/schema.sql) → **Run**.
-   It should report success and create four tables plus two functions. Safe to
+   It should report success and create five tables plus two functions. Safe to
    re-run.
 4. **Project Settings → Data API** → copy the **Project URL**.
 5. **Project Settings → API Keys** → reveal and copy the **`service_role`** key.
@@ -47,7 +47,7 @@ before the site is hard-down. With it, 5,000/hour.
 cp .env.example .env.local
 ```
 
-Fill in the four values, then:
+Fill in the four required values (the sponsor-mail ones are optional), then:
 
 ```bash
 npm install
@@ -138,6 +138,49 @@ story than the product.
 
 ---
 
+## Sponsorship
+
+One sponsor site-wide, filling four placements: two rows on the board (after
+the fifth and fifteenth contributor), one line under every profile header, and
+the footer credit on every page. With no sponsor configured, each of the four
+sells itself and links to `/sponsor`.
+
+There is no admin screen and no sponsors table. The live sponsor is
+[`sponsor.config.ts`](sponsor.config.ts) — one object or `null`:
+
+```ts
+const sponsor: Sponsor | null = {
+  name: "Acme",
+  tagline: "the build tool that stays out of the way",
+  logoUrl: "/sponsors/acme.svg",   // this origin, or Supabase storage
+  url: "https://acme.dev",
+  blurb: "Ship faster with Acme →",
+};
+```
+
+Commit the logo to `public/` or upload it to Supabase storage. A logo pointed
+at a third-party CDN is dropped at render (a monogram takes its place) and the
+reason is logged: an `<img>` on someone else's host reports every visitor on
+every page to them, which is the thing `/sponsor` promises the site doesn't do.
+
+Outbound sponsor links carry `rel="sponsored noopener"`, and every placement is
+rendered on the server with the page.
+
+Deploying a change to that file is the whole workflow — no revalidate call
+needed, since it ships in the build.
+
+**Inquiries** land in `sponsor_inquiries` and are mailed to you if
+`RESEND_API_KEY` and `SPONSOR_NOTIFY_TO` are set. Unset, the row is still
+written and the message is logged to the function output instead — the mail is
+never allowed to fail the request, because there is no second copy of what
+somebody typed.
+
+```sql
+select * from sponsor_inquiries where handled = false order by created_at desc;
+```
+
+---
+
 ## Sharing
 
 Profiles live at the root: **`/yourname`**, not `/u/yourname`. The old path
@@ -215,6 +258,10 @@ of: the diff.
   submitting is framed as opening a pull request against the board.
 - Type: Familjen Grotesk (display), Instrument Sans (prose), JetBrains Mono
   (all data).
+- **Secondary text (`--color-dim`) is held at 4.5:1 or better** against the
+  page. It sits at 5.97:1 today. Dropping it for looks makes half the interface
+  — every handle, caption and label — unreadable on a laptop outdoors, so treat
+  that token as a floor rather than a taste decision.
 
 ## Layout
 
@@ -231,18 +278,26 @@ app/
   wall/                   every upstream patch
   method/                 how the score works and where it fails
   remove/                 opt-out
+  sponsor/                the four placements, the price, and the form
   api/resolve/            read-only preview of a pasted link
   api/add/                the only public write
   api/removal/            queues an opt-out request
+  api/sponsor/            queues a sponsor inquiry
   api/cron/refresh/       nightly, CRON_SECRET-guarded
   api/admin/import/       one-time seed import, CRON_SECRET-guarded
+components/
+  FeatureRow.tsx          the sponsor row on the board
+  ProfileStrip.tsx        the line under every profile header
+  FooterCredit.tsx        the credit in the footer
 lib/
   score.ts                the impact formula
+  sponsor.ts              reads sponsor.config.ts, guards the logo origin
   db.ts                   every query
   supabase.ts             service-role client, server-only
   database.types.ts       hand-written schema types
   github.ts               GitHub client
   parse.ts                works out what a pasted string is
+sponsor.config.ts         the live sponsor, or null — edited by hand
 supabase/schema.sql       run this in the SQL editor
 ```
 

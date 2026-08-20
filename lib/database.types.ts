@@ -72,6 +72,17 @@ export type SubmissionRow = {
   created_at: string;
 };
 
+export type SponsorInquiryRow = {
+  id: number;
+  name: string;
+  email: string;
+  company_url: string | null;
+  message: string | null;
+  ip_hash: string | null;
+  handled: boolean;
+  created_at: string;
+};
+
 type Table<Row, Insert> = {
   Row: Row;
   Insert: Insert;
@@ -94,6 +105,10 @@ export type Database = {
       submissions: Table<
         SubmissionRow,
         Pick<SubmissionRow, "ip_hash"> & Partial<SubmissionRow>
+      >;
+      sponsor_inquiries: Table<
+        SponsorInquiryRow,
+        Pick<SponsorInquiryRow, "name" | "email"> & Partial<SponsorInquiryRow>
       >;
     };
     Views: Record<never, never>;

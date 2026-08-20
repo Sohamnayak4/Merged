@@ -4,6 +4,7 @@ import type { PR, Profile, Score } from "@/lib/types";
 import Heatmap from "./Heatmap";
 import ImpactBars from "./ImpactBars";
 import LangDNA from "./LangDNA";
+import ProfileStrip from "./ProfileStrip";
 import ShareLink from "./ShareLink";
 import TierBadge from "./TierBadge";
 
@@ -130,6 +131,8 @@ export default function ProfileView({
           </div>
         </div>
       </section>
+
+      <ProfileStrip />
 
       {/* ── headline counts ────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-5 pt-10 sm:px-8">
