@@ -61,6 +61,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // Tells Next to suspend the smooth scrolling set in globals.css while a
+      // route transition runs. Without it, page navigations animate their
+      // scroll-to-top and Next logs a warning in development.
+      data-scroll-behavior="smooth"
       className={`${familjen.variable} ${instrument.variable} ${jetbrains.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ink-950">

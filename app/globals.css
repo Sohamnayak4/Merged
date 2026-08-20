@@ -39,8 +39,15 @@
   color-scheme: dark;
 }
 
+/* Smooth scrolling is for in-page jumps — the header's Sponsor button, and
+   any anchor link. Route changes stay instant: Next drops this to `auto` for
+   the duration of a navigation, but only when <html> carries
+   data-scroll-behavior="smooth", which app/layout.tsx sets. Hash-only changes
+   are exempt from that, which is exactly the case we want animated.
+   The reduced-motion block at the foot of this file turns it back off. */
 html {
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
