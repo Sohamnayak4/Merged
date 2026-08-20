@@ -17,7 +17,10 @@
   --color-ink-700: #191922;
   --color-line: #20202c;
   --color-line-2: #2c2c3b;
-  --color-dim: #61617a;
+  /* Secondary text. Raised from #61617a, which measured 3.35:1 on ink-950 —
+     legible on a good monitor at night, unreadable on a laptop outdoors. This
+     sits at 5.97:1, past the 4.5:1 AA floor for body text. */
+  --color-dim: #8b8b96;
   --color-mid: #9292aa;
   --color-fg: #e9e9f2;
 
