@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FeatureJump from "./FeatureJump";
 
 function MergeGlyph({ className = "" }: { className?: string }) {
   // The git merge icon, drawn rather than imported: a side branch rejoining
@@ -43,6 +44,14 @@ export default function Header() {
           >
             Method
           </Link>
+          {/* Jumps to the first sponsor row rather than to /sponsor: the slot
+              itself, sitting in the board among real contributors, is a better
+              pitch than any page describing it.
+
+              Held back until sm — a phone header fits three items and the
+              fourth pushes "+ Add yours" off the edge. The footer credit and
+              the row itself still reach /sponsor from any width. */}
+          <FeatureJump />
           <Link
             href="/add"
             className="mono ml-1 rounded-[3px] border border-merge/40 bg-merge/10 px-3 py-1.5 text-[12px] text-merge transition-colors hover:bg-merge/20"

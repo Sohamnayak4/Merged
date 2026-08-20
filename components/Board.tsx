@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { avatarFor, compact } from "@/lib/format";
 import { loadMine } from "@/lib/mine";
+import { FEATURE_ANCHOR } from "@/lib/anchors";
 import type { BoardRow } from "@/lib/db";
 import LangDNA from "./LangDNA";
 import TierBadge from "./TierBadge";
@@ -224,7 +225,15 @@ export default function Board({
           return feature && FEATURE_AFTER.includes(i + 1)
             ? [
                 person,
-                <li key={`feature-${i}`} className="rise">
+                <li
+                  key={`feature-${i}`}
+                  id={i + 1 === FEATURE_AFTER[0] ? FEATURE_ANCHOR : undefined}
+                  // Jumped to from the header. The offset is half the
+                  // viewport less half a row, which parks the slot in the
+                  // middle of the screen instead of tight under the header —
+                  // dvh rather than vh so a phone's toolbar doesn't push it low.
+                  className="rise scroll-mt-[calc(50dvh-2.5rem)]"
+                >
                   {feature}
                 </li>,
               ]
