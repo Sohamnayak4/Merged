@@ -11,6 +11,23 @@ export default function Footer() {
             counts, and a public board.
           </p>
           <FooterCredit />
+          {/* The site is dark-only (color-scheme: dark in globals.css), so the
+              dark badge is the one that matches. If a light theme ever lands,
+              swap this for a <picture> keyed on that theme. */}
+          <a
+            href="https://sohamlaunches.com/p/merged"
+            target="_blank"
+            rel="noopener"
+            className="mt-1 self-start transition-opacity hover:opacity-80"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://sohamlaunches.com/badge/merged/launched-dark.svg"
+              alt="Launched on SohamLaunches"
+              width={250}
+              height={54}
+            />
+          </a>
         </div>
         <div className="flex items-center gap-5">
           <Link
